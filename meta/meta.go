@@ -12,6 +12,7 @@ import (
 type Project interface {
 	Name() string
 	Version() string
+	Full() string
 
 	UpdateCobraCommand(cmd *cobra.Command)
 	NewVersionCobraCommand() *cobra.Command
@@ -42,6 +43,10 @@ func (p *project) Version() string {
 	return p.version
 }
 
+func (p *project) Full() string {
+	return fmt.Sprintf("%s %s", p.name, p.version)
+}
+
 func (p *project) NewVersionCobraCommand() *cobra.Command {
 	var (
 		show_short       bool
@@ -65,7 +70,7 @@ func (p *project) NewVersionCobraCommand() *cobra.Command {
 					fmt.Println(p[1:])
 				}
 			} else {
-				fmt.Printf("%s %s\n", p.name, p.version)
+				fmt.Println(p.Full())
 			}
 		},
 	}
