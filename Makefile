@@ -56,19 +56,14 @@ update-deps:
 	go mod tidy
 	git status --porcelain | grep -q 'go\.mod\|go\.sum'
 
-#github-release: extract-release-notes
-#	@if [ -n "`./bin/loadctl version --prerelease`" ]; then \
-#       prerelease="--prerelease"; \
-#    else \
-#       latest="--latest"; \
-#    fi ;\
-#	gh release create $(VERSION) --title "Loadctl Daemon $(VERSION)" \
-#         $${prerelease} $${latest} \
-#         --notes-file RELEASE_NOTES.md.$(VERSION) \
-#         dist/*.zip dist/*.tgz
-
-#extract-release-notes:
-#	@sed -n '/^## $(VERSION)/,/^## /p' RELEASE_NOTES.md | grep -ve '^## ' >| RELEASE_NOTES.md.$(VERSION)
+github-release:
+	if [ -n "`./bin/proj-meta version --pre-release`" ]; then \
+       prerelease="--prerelease"; \
+    else \
+       latest="--latest"; \
+    fi ;\
+	gh release create $(VERSION) --title "proj-meta $(VERSION)" \
+         $${prerelease} $${latest}
 
 GOTESTSUM_VERSION ?= latest
 GOTESTSUM = $(LOCALBIN)/gotestsum-$(GOTESTSUM_VERSION)
