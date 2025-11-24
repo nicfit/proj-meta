@@ -14,7 +14,7 @@ type Project interface {
 	Version() string
 	Full() string
 
-	UpdateCobraCommand(cmd *cobra.Command)
+	UpdateCobraCommand(cmd *cobra.Command) (versionCmd *cobra.Command)
 	NewVersionCobraCommand() *cobra.Command
 }
 
@@ -84,9 +84,13 @@ func (p *project) NewVersionCobraCommand() *cobra.Command {
 	return cmd
 }
 
-func (p *project) UpdateCobraCommand(cmd *cobra.Command) {
+func (p *project) UpdateCobraCommand(cmd *cobra.Command) (versionCmd *cobra.Command) {
 	cmd.Version = p.version
-	cmd.AddCommand(p.NewVersionCobraCommand())
+
+	versionCmd = p.NewVersionCobraCommand()
+	cmd.AddCommand(versionCmd)
+
+	return versionCmd
 }
 
 type project struct {
