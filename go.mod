@@ -1,6 +1,6 @@
 module github.com/nicfit/proj-meta
 
-go 1.24.8
+go 1.24.0
 
 require (
 	github.com/spf13/cobra v1.10.1
