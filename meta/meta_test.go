@@ -63,7 +63,7 @@ func TestNewProject(t *testing.T) {
 
 	tests := []testCase{
 		{"Valid", "Television", "v5.4.3", "Television", "v5.4.3"},
-		{"Valid with pre-release", "Radiohead", "v2.0.0-beta.1", "Radiohead", "v2.0.0-beta.1"},
+		{"Valid with prerelease", "Radiohead", "v2.0.0-beta.1", "Radiohead", "v2.0.0-beta.1"},
 		{"ValidWithNameTrim", " Television\t", "v5.4.3", "Television", "v5.4.3"},
 		{"ValidWithVersion", " Television", "   v5.4.3\n", "Television", "v5.4.3"},
 	}
@@ -92,7 +92,7 @@ func TestProjectNewCobraCommand(t *testing.T) {
 	}
 	for _, f := range []flagInfo{
 		{"short", "s"},
-		{"pre-release", ""},
+		{"prerelease", ""},
 		{"major", ""},
 		{"major-minor", ""},
 	} {
@@ -113,7 +113,7 @@ func TestProjectNewCobraCommand(t *testing.T) {
 	for _, tc := range []testCase{
 		{[]string{"version"}, "marquee-moon v19.7.7-dev\n"},
 		{[]string{"version", "--short"}, "v19.7.7-dev\n"},
-		{[]string{"version", "--pre-release"}, "dev\n"},
+		{[]string{"version", "--prerelease"}, "dev\n"},
 		{[]string{"version", "--major"}, "19\n"},
 		{[]string{"version", "--major-minor"}, "19.7\n"},
 	} {
@@ -159,7 +159,7 @@ func TestProjectUpdateCobraCommand(t *testing.T) {
 	for _, tc := range []testCase{
 		{[]string{"version"}, "bass-drum-of-death v20.1.3\n"},
 		{[]string{"version", "--short"}, "v20.1.3\n"},
-		{[]string{"version", "--pre-release"}, ""},
+		{[]string{"version", "--prerelease"}, ""},
 		{[]string{"version", "--major"}, "20\n"},
 		{[]string{"version", "--major-minor"}, "20.1\n"},
 	} {

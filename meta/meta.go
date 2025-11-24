@@ -78,8 +78,8 @@ func (p *project) NewVersionCobraCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&show_short, "short", "s", false, "Output only the semantic version.")
 	cmd.Flags().BoolVar(&show_major, "major", false, "Show the major version.")
 	cmd.Flags().BoolVar(&show_major_minor, "major-minor", false, "Show the major and minor version.")
-	cmd.Flags().BoolVar(&show_pre, "pre-release", false, "Show the prerelease version.")
-	cmd.MarkFlagsMutuallyExclusive("short", "major", "major-minor", "pre-release")
+	cmd.Flags().BoolVar(&show_pre, "prerelease", false, "Show the prerelease version.")
+	cmd.MarkFlagsMutuallyExclusive("short", "major", "major-minor", "prerelease")
 
 	return cmd
 }

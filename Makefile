@@ -20,12 +20,15 @@ all: clean build test
 .PHONY: build
 build:
 	go build ./...
-	go build -o bin/proj-meta ./cmd.go
+	go build -o $(LOCALBIN)/proj-meta ./cmd.go
 
 .PHONY: clean
 clean:
-	rm -rf bin
+	rm -rf $(LOCALBIN)/proj-meta
 	rm -f RELEASE_NOTES.md.* $(TEST_JUNIT) $(TEST_COVERAGE)
+
+clean-all: clean
+	rm -rf $(LOCALBIN)
 
 export GOTESTSUM_FORMAT ?= dots-v2
 test: lint test-unit
@@ -57,13 +60,13 @@ update-deps:
 	git status --porcelain | grep -q 'go\.mod\|go\.sum'
 
 github-release:
-	if [ -n "`./bin/proj-meta version --pre-release`" ]; then \
-       prerelease="--prerelease"; \
+	@stage="--latest"; \
+	if [ -n "`./bin/proj-meta version --prerelease`" ]; then \
+       stage="--prerelease"; \
     else \
-       latest="--latest"; \
+       stage="--latest"; \
     fi ;\
-	gh release create $(VERSION) --title "proj-meta $(VERSION)" \
-         $${prerelease} $${latest}
+	gh release create $(VERSION) --title "proj-meta $(VERSION)" $${stage}
 
 GOTESTSUM_VERSION ?= latest
 GOTESTSUM = $(LOCALBIN)/gotestsum-$(GOTESTSUM_VERSION)
