@@ -15,20 +15,25 @@ export GOOS
 GOARCH ?=
 export GOARCH
 
+EXAMPLES := bin/cli bin/cobra
+
 all: clean build test
 
 .PHONY: build
 build:
 	go build ./...
-	go build -o $(LOCALBIN)/proj-meta ./cmd.go
+	for ex in $(EXAMPLES); do \
+  	  base=$$(basename $$ex); \
+  	  go build -o $$ex examples/$$base/$$base.go; \
+	done
 
 .PHONY: clean
 clean:
-	rm -rf $(LOCALBIN)/proj-meta
+	rm -f $(EXAMPLES)
 	rm -f RELEASE_NOTES.md.* $(TEST_JUNIT) $(TEST_COVERAGE)
 
 clean-all: clean
-	rm -rf $(LOCALBIN)
+	rm -rf ./bin
 
 export GOTESTSUM_FORMAT ?= dots-v2
 test: lint test-unit
@@ -61,7 +66,7 @@ update-deps:
 
 github-release:
 	@stage="--latest"; \
-	if [ -n "`./bin/proj-meta version --prerelease`" ]; then \
+	if [ -n "`./bin/cobra version --prerelease`" ]; then \
        stage="--prerelease"; \
     else \
        stage="--latest"; \
@@ -69,19 +74,19 @@ github-release:
 	gh release create $(VERSION) --title "proj-meta $(VERSION)" $${stage}
 
 GOTESTSUM_VERSION ?= latest
-GOTESTSUM = $(LOCALBIN)/gotestsum-$(GOTESTSUM_VERSION)
+GOTESTSUM = $(TOOLSBIN)/gotestsum-$(GOTESTSUM_VERSION)
 
 .PHONY: gotestsum
 gotestsum: $(GOTESTSUM)
-$(GOTESTSUM): $(LOCALBIN)
+$(GOTESTSUM): $(TOOLSBIN)
 	$(call go-install-tool,$(GOTESTSUM),gotest.tools/gotestsum,$(GOTESTSUM_VERSION))
 
 GOLANGCI_LINT_VERSION ?= latest
-GOLANGCI_LINT = $(LOCALBIN)/golangci-lint-$(GOLANGCI_LINT_VERSION)
+GOLANGCI_LINT = $(TOOLSBIN)/golangci-lint-$(GOLANGCI_LINT_VERSION)
 
 .PHONY: golangci-lint
 golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
-$(GOLANGCI_LINT): $(LOCALBIN)
+$(GOLANGCI_LINT): $(TOOLSBIN)
 	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/v2/cmd/golangci-lint,$(GOLANGCI_LINT_VERSION))
 
 lint: golangci-lint  ## Run golangci-lint linter & yamllint
@@ -91,9 +96,9 @@ lint-fix: golangci-lint  ## Run golangci-lint linter and perform fixes
 	$(GOLANGCI_LINT) run --fix
 
 ## Location to install dependencies to
-LOCALBIN ?= $(shell pwd)/bin/tools
-$(LOCALBIN):
-	mkdir -p $(LOCALBIN)
+TOOLSBIN ?= $(shell pwd)/bin/tools
+$(TOOLSBIN):
+	mkdir -p $(TOOLSBIN)
 
 # go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
 # $1 - target path with name of binary (ideally with version)
@@ -104,7 +109,7 @@ define go-install-tool
 set -e; \
 package=$(2)@$(3) ;\
 echo "Downloading $${package}" ;\
-GOBIN=$(LOCALBIN) go install $${package} ;\
+GOBIN=$(TOOLSBIN) go install $${package} ;\
 mv "$$(echo "$(1)" | sed "s/-$(3)$$//")" $(1) ;\
 }
 endef
