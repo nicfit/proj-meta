@@ -15,13 +15,16 @@ func (p *project) NewVersionCobraCommand() *cobra.Command {
 		},
 	}
 
+	mutually_exclusive := make([]string, 0)
 	for name, opt := range *opts {
 		shorthand := ""
 		if opt.aliases != nil {
 			shorthand = opt.aliases[0]
 		}
 		cmd.Flags().BoolVarP(&opt.destination, name, shorthand, false, opt.usage)
+		mutually_exclusive = append(mutually_exclusive, name)
 	}
+	cmd.MarkFlagsMutuallyExclusive(mutually_exclusive...)
 
 	return cmd
 }

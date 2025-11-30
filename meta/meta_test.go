@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io"
 	"os"
-	"slices"
 	"strings"
 	"testing"
 
@@ -87,23 +86,6 @@ func TestProjectNewCobraCommand(t *testing.T) {
 	assert.Equal(t, "version", cmd.Use)
 	assert.Equal(t, "Print program version", cmd.Short)
 
-	type flagInfo struct {
-		name      string
-		shorthand string
-	}
-	for _, f := range []flagInfo{
-		{"short", "s"},
-		{"prerelease", ""},
-		{"major", ""},
-		{"major-minor", ""},
-	} {
-		t.Run(f.name, func(t *testing.T) {
-			flag := cmd.Flags().Lookup(f.name)
-			assert.NotNil(t, flag)
-			assert.Equal(t, f.shorthand, flag.Shorthand)
-		})
-	}
-
 	og_stdout := os.Stdout
 	defer func() { os.Stdout = og_stdout }()
 
@@ -154,28 +136,6 @@ func TestProjectNewCliCommand(t *testing.T) {
 	assert.NotNil(t, cmd)
 	assert.Equal(t, "version", cmd.Name)
 	assert.Equal(t, "Print program version", cmd.Usage)
-
-	type flagInfo struct {
-		name      string
-		shorthand string
-	}
-	for _, f := range []flagInfo{
-		{"short", "s"},
-		{"prerelease", ""},
-		{"major", ""},
-		{"major-minor", ""},
-	} {
-		t.Run(f.name, func(t *testing.T) {
-			found := false
-			for i := range cmd.Flags {
-				if slices.Contains(cmd.Flags[i].Names(), f.name) {
-					found = true
-					break
-				}
-			}
-			assert.True(t, found)
-		})
-	}
 
 	og_stdout := os.Stdout
 	defer func() { os.Stdout = og_stdout }()

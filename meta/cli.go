@@ -25,6 +25,11 @@ func (p *project) NewVersionCliCommand() *cli.Command {
 		},
 	}
 
+	mutually_exclusive := make([]cli.MutuallyExclusiveFlags, 1)
+	mutually_exclusive[0] = cli.MutuallyExclusiveFlags{
+		Required: false,
+		Flags:    make([][]cli.Flag, 0),
+	}
 	for name, opt := range *opts {
 		f := cli.BoolFlag{
 			Name:        name,
@@ -32,8 +37,9 @@ func (p *project) NewVersionCliCommand() *cli.Command {
 			Usage:       opt.usage,
 			Destination: &(opt.destination),
 		}
-		cmd.Flags = append(cmd.Flags, &f)
+		mutually_exclusive[0].Flags = append(mutually_exclusive[0].Flags, []cli.Flag{&f})
 	}
+	cmd.MutuallyExclusiveFlags = mutually_exclusive
 
 	return cmd
 }

@@ -119,27 +119,17 @@ func newFlags() *flagOpts {
 }
 
 func handleVersionFlags(opts flagOpts, project Project) {
-	if !opts["short"].destination &&
-		!opts["major"].destination &&
-		!opts["major-minor"].destination &&
-		!opts["prerelease"].destination {
-
-		fmt.Println(project.Full())
+	if opts["short"].destination {
+		fmt.Printf("%s\n", project.Version())
+	} else if opts["major"].destination {
+		fmt.Println(semver.Major(project.Version())[1:])
+	} else if opts["major-minor"].destination {
+		fmt.Println(semver.MajorMinor(project.Version())[1:])
+	} else if opts["prerelease"].destination {
+		if p := semver.Prerelease(project.Version()); p != "" {
+			fmt.Println(p[1:])
+		}
 	} else {
-		if opts["short"].destination {
-			fmt.Printf("%s\n", project.Version())
-		}
-		if opts["major"].destination {
-			fmt.Println(semver.Major(project.Version())[1:])
-		}
-		if opts["major-minor"].destination {
-			fmt.Println(semver.MajorMinor(project.Version())[1:])
-		}
-
-		if opts["prerelease"].destination {
-			if p := semver.Prerelease(project.Version()); p != "" {
-				fmt.Println(p[1:])
-			}
-		}
+		fmt.Println(project.Full())
 	}
 }
