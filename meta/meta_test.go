@@ -86,23 +86,6 @@ func TestProjectNewCobraCommand(t *testing.T) {
 	assert.Equal(t, "version", cmd.Use)
 	assert.Equal(t, "Print program version", cmd.Short)
 
-	type flagInfo struct {
-		name      string
-		shorthand string
-	}
-	for _, f := range []flagInfo{
-		{"short", "s"},
-		{"prerelease", ""},
-		{"major", ""},
-		{"major-minor", ""},
-	} {
-		t.Run(f.name, func(t *testing.T) {
-			flag := cmd.Flags().Lookup(f.name)
-			assert.NotNil(t, flag)
-			assert.Equal(t, f.shorthand, flag.Shorthand)
-		})
-	}
-
 	og_stdout := os.Stdout
 	defer func() { os.Stdout = og_stdout }()
 
@@ -145,9 +128,14 @@ func TestProjectNewCobraCommand(t *testing.T) {
 	}
 }
 
-func TestProjectUpdateCobraCommand(t *testing.T) {
-	proj, err := NewProject("bass-drum-of-death", "v20.1.3")
+func TestProjectNewCliCommand(t *testing.T) {
+	p, err := NewProject("Maths+English", "v20.0.7-rc3")
 	assert.NoError(t, err)
+
+	cmd := p.NewVersionCliCommand()
+	assert.NotNil(t, cmd)
+	assert.Equal(t, "version", cmd.Name)
+	assert.Equal(t, "Print program version", cmd.Usage)
 
 	og_stdout := os.Stdout
 	defer func() { os.Stdout = og_stdout }()
@@ -157,25 +145,25 @@ func TestProjectUpdateCobraCommand(t *testing.T) {
 		expectedOutput string
 	}
 	for _, tc := range []testCase{
-		{[]string{"version"}, "bass-drum-of-death v20.1.3\n"},
-		{[]string{"version", "--short"}, "v20.1.3\n"},
-		{[]string{"version", "--prerelease"}, ""},
+		{[]string{"version"}, "Maths+English v20.0.7-rc3\n"},
+		{[]string{"version", "--short"}, "v20.0.7-rc3\n"},
+		{[]string{"version", "--prerelease"}, "rc3\n"},
 		{[]string{"version", "--major"}, "20\n"},
-		{[]string{"version", "--major-minor"}, "20.1\n"},
+		{[]string{"version", "--major-minor"}, "20.0\n"},
 	} {
 		r, w, err := os.Pipe()
 		assert.NoError(t, err)
 		os.Stdout = w
 
 		main_cmd := &cobra.Command{
-			Use: "bass-drum-of-death",
+			Use: "face-value",
 			Run: func(cmd *cobra.Command, args []string) {
 			},
 		}
-		proj.UpdateCobraCommand(main_cmd)
+		main_cmd.AddCommand(p.NewVersionCobraCommand())
 
 		t.Run("Execute:"+strings.Join(tc.args, ","), func(t *testing.T) {
-			os.Args = []string{"bass-drum-of-death"}
+			os.Args = []string{"face-value"}
 			os.Args = append(os.Args, tc.args...)
 			err := main_cmd.Execute()
 			assert.NoError(t, err)

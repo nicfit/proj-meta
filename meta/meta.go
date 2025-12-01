@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/urfave/cli/v3"
 	"golang.org/x/mod/semver"
 )
 
@@ -14,8 +15,19 @@ type Project interface {
 	Version() string
 	Full() string
 
-	UpdateCobraCommand(cmd *cobra.Command) (versionCmd *cobra.Command)
+	UpdateCobraCommand(cmd *cobra.Command) *cobra.Command
 	NewVersionCobraCommand() *cobra.Command
+
+	UpdateCliCommand(cmd *cli.Command) *cli.Command
+	NewVersionCliCommand() *cli.Command
+}
+
+func NewProjectMust(name string, version string) Project {
+	if project, err := NewProject(name, version); err != nil {
+		panic(err)
+	} else {
+		return project
+	}
 }
 
 func NewProject(name string, version string) (Project, error) {
@@ -45,52 +57,6 @@ func (p *project) Version() string {
 
 func (p *project) Full() string {
 	return fmt.Sprintf("%s %s", p.name, p.version)
-}
-
-func (p *project) NewVersionCobraCommand() *cobra.Command {
-	var (
-		show_short       bool
-		show_major       bool
-		show_major_minor bool
-		show_pre         bool
-	)
-
-	cmd := &cobra.Command{
-		Use:   "version",
-		Short: "Print program version",
-		Run: func(cmd *cobra.Command, args []string) {
-			if show_short {
-				fmt.Printf("%s\n", p.version)
-			} else if show_major {
-				fmt.Println(semver.Major(p.version)[1:])
-			} else if show_major_minor {
-				fmt.Println(semver.MajorMinor(p.version)[1:])
-			} else if show_pre {
-				if p := semver.Prerelease(p.version); p != "" {
-					fmt.Println(p[1:])
-				}
-			} else {
-				fmt.Println(p.Full())
-			}
-		},
-	}
-
-	cmd.Flags().BoolVarP(&show_short, "short", "s", false, "Output only the semantic version.")
-	cmd.Flags().BoolVar(&show_major, "major", false, "Show the major version.")
-	cmd.Flags().BoolVar(&show_major_minor, "major-minor", false, "Show the major and minor version.")
-	cmd.Flags().BoolVar(&show_pre, "prerelease", false, "Show the prerelease version.")
-	cmd.MarkFlagsMutuallyExclusive("short", "major", "major-minor", "prerelease")
-
-	return cmd
-}
-
-func (p *project) UpdateCobraCommand(cmd *cobra.Command) (versionCmd *cobra.Command) {
-	cmd.Version = p.version
-
-	versionCmd = p.NewVersionCobraCommand()
-	cmd.AddCommand(versionCmd)
-
-	return versionCmd
 }
 
 type project struct {
@@ -124,3 +90,46 @@ func validateProjectVersion(version string) (string, error) {
 }
 
 const cutset = "\t\n\r "
+
+type flag struct {
+	aliases     []string
+	usage       string
+	destination bool
+}
+
+type flagOpts map[string]*flag
+
+func newFlags() *flagOpts {
+	var flags = flagOpts{
+		"short": {
+			aliases: []string{"s"},
+			usage:   "Output only the semantic version.",
+		},
+		"major": {
+			usage: "Show the major version.",
+		},
+		"major-minor": {
+			usage: "Show the major and minor version.",
+		},
+		"prerelease": {
+			usage: "Show the prerelease version.",
+		},
+	}
+	return &flags
+}
+
+func handleVersionFlags(opts flagOpts, project Project) {
+	if opts["short"].destination {
+		fmt.Printf("%s\n", project.Version())
+	} else if opts["major"].destination {
+		fmt.Println(semver.Major(project.Version())[1:])
+	} else if opts["major-minor"].destination {
+		fmt.Println(semver.MajorMinor(project.Version())[1:])
+	} else if opts["prerelease"].destination {
+		if p := semver.Prerelease(project.Version()); p != "" {
+			fmt.Println(p[1:])
+		}
+	} else {
+		fmt.Println(project.Full())
+	}
+}
